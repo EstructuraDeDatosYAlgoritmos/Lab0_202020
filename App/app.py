@@ -23,7 +23,8 @@
  """
 
 """
-  Este módulo es una aplicación básica con un menú de opciones para cargar datos, contar elementos, y hacer búsquedas sobre una lista.
+  Este módulo es una aplicación básica con un menú de opciones para cargar 
+  datos, contar elementos, y hacer búsquedas sobre una lista.
 """
 
 import config as cf
@@ -31,7 +32,7 @@ import sys
 import csv
 from time import process_time 
 
-def loadCSVFile (file, lst, sep=";"):
+def loadCSVFile (data_link, data, sep=";"):
     """
     Carga un archivo csv a una lista
     Args:
@@ -46,21 +47,28 @@ def loadCSVFile (file, lst, sep=";"):
         Borra la lista e informa al usuario
     Returns: None   
     """
-    del lst[:]
     print("Cargando archivo ....")
+    
     t1_start = process_time() #tiempo inicial
     dialect = csv.excel()
-    dialect.delimiter=sep
-    try:
-        with open(file, encoding="utf-8") as csvfile:
-            spamreader = csv.DictReader(csvfile, dialect=dialect)
-            for row in spamreader: 
-                lst.append(row)
-    except:
-        del lst[:]
-        print("Se presento un error en la carga del archivo")
+    dialect.delimiter = sep
     
-    t1_stop = process_time() #tiempo final
+    data.clear()
+
+    for link in data_link:
+        try:
+            with open(link, encoding="utf-8") as csvfile:
+                spamreader = csv.DictReader(csvfile, dialect=dialect)
+                for row in spamreader:
+                    if row['id'] not in data.keys():
+                        data[row['id']] = {}
+                    for detail in row.keys():
+                        data[row['id']][detail] = row[detail]
+        except:
+            data.clear()
+            print("Se presento un error en la carga del archivo")
+    
+    t1_stop = process_time()  #tiempo final
     print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
 
 def printMenu():
@@ -71,10 +79,10 @@ def printMenu():
     print("1- Cargar Datos")
     print("2- Contar los elementos de la Lista")
     print("3- Contar elementos filtrados por palabra clave")
-    print("4- Consultar elementos a partir de dos listas")
+    print("4- Encontrar buenas películas de un director")
     print("0- Salir")
 
-def countElementsFilteredByColumn(criteria, column, lst):
+def countElementsFilteredByColumn(details, casting):
     """
     Retorna cuantos elementos coinciden con un criterio para una columna dada  
     Args:
@@ -101,12 +109,30 @@ def countElementsFilteredByColumn(criteria, column, lst):
         print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
     return counter
 
-def countElementsByCriteria(criteria, column, lst):
+def countElementsByCriteria(data, director):
     """
     Retorna la cantidad de elementos que cumplen con un criterio para una columna dada
     """
-    return 0
 
+    if len(data)==0:
+        print("La lista esta vacía")  
+        return 0
+    else:
+        t1_start = process_time() #tiempo inicial
+        counter = 0  #Cantidad de repeticiones
+        average = 0
+        for key in data.keys():
+            vote = float(data[key]['vote_average'])
+            if (data[key]['director_name'] == director)and(vote >= 6): #filtrar por promedio de votos
+                counter += 1
+                average += vote
+                
+        t1_stop = process_time() #tiempo final
+        print("Tiempo de ejecución ", t1_stop - t1_start, " segundos")
+        if average != 0:
+            average /= counter
+    
+    return (counter,average)
 
 def main():
     """
@@ -116,26 +142,35 @@ def main():
     Args: None
     Return: None 
     """
-    lista = [] #instanciar una lista vacia
+    data = {} #instanciar un diccionario vacio
+
+    data_link = [ #contiene los enlaces a los archivos .cvs
+        "Data/themoviesdb/AllMoviesDetailsCleaned.csv",
+        "Data/themoviesdb/AllMoviesCastingRaw.csv"
+    ]
+
     while True:
         printMenu() #imprimir el menu de opciones en consola
         inputs =input('Seleccione una opción para continuar\n') #leer opción ingresada
         if len(inputs)>0:
             if int(inputs[0])==1: #opcion 1
-                loadCSVFile("Data/test.csv", lista) #llamar funcion cargar datos
-                print("Datos cargados, "+str(len(lista))+" elementos cargados")
+                loadCSVFile(data_link, data) #llamar funcion cargar datos
+                print("Datos cargados, "+str(len(data))+" elementos cargados")
             elif int(inputs[0])==2: #opcion 2
                 if len(lista)==0: #obtener la longitud de la lista
                     print("La lista esta vacía")    
-                else: print("La lista tiene "+str(len(lista))+" elementos")
+                else: print("La lista tiene "+str(len(data))+" elementos")
             elif int(inputs[0])==3: #opcion 3
-                criteria =input('Ingrese el criterio de búsqueda\n')
-                counter=countElementsFilteredByColumn(criteria, "nombre", lista) #filtrar una columna por criterio  
-                print("Coinciden ",counter," elementos con el crtierio: ", criteria  )
+                column=input('Ingrese el tipo de información que desea consultar')
+                criteria=input('Ingrese el criterio de búsqueda\n')
+                counter=countElementsFilteredByColumn(criteria, column, data) #filtrar una columna por criterio  
+                print("Coinciden ",counter," elementos con el crtierio: ", criteria)
             elif int(inputs[0])==4: #opcion 4
-                criteria =input('Ingrese el criterio de búsqueda\n')
-                counter=countElementsByCriteria(criteria,0,lista)
-                print("Coinciden ",counter," elementos con el crtierio: '", criteria ,"' (en construcción ...)")
+                director = input('Ingrese el nombre del director\n')
+                counter, average = countElementsByCriteria(data,director)
+                print("Existen ",counter," peliculas buenas del director ", director, "con una puntuacion promedio de: ",average)
+            elif inputs[0]=='77': #opcion dev
+                print(data['2'])
             elif int(inputs[0])==0: #opcion 0, salir
                 sys.exit(0)
 
