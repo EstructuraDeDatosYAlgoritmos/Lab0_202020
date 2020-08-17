@@ -71,6 +71,37 @@ def loadCSVFile (data_link, data, sep=";"):
     t1_stop = process_time()  #tiempo final
     print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
 
+def loadCSVFile1(archivo:str)->list:
+    moviedetails = []
+    
+    archivo = open(archivo, "r")
+    archivo.readline()
+    linea = archivo.readline()
+   
+    while len(linea) > 0:
+        
+        lin=linea.split(";")
+        moviedetails.append({"id":lin[0], "budget":lin[1],"genres":lin[2],"imdb_id":lin[3],"original_language":lin[4],"original_title":lin[5],"overview":lin[6],"popularity":lin[7],"nameproduction_companies":lin[8],"nameproduction_countries":lin[9],"release_date":lin[10],"revenue":lin[11],"runtime":lin[12],"namespoken_languages":lin[13],"status":lin[14],"tagline":lin[15],"title":lin[16],"vote_average":lin[17],"vote_count":lin[18],"numproduction_companies":lin[19],"numproduction_countries":lin[20],"numspoken_languages":lin[21]})
+        linea = archivo.readline();
+    archivo.close    
+    return moviedetails
+
+def loadCSVFile2 (archivo:str)->list:
+    moviecasting = []
+    
+    archivo = open(archivo, "r")
+    archivo.readline()
+    linea = archivo.readline()
+   
+    while len(linea) > 0:
+        
+        lin=linea.split(";")
+        moviecasting.append({"id":lin[0], "actor1_name":lin[1],"actor1_gender":lin[2],"actor2_name":lin[3],"actor2_gender":lin[4],"actor3_name":lin[5],"actor3_gender":lin[6],"actor4_name":lin[7],"actor4_gender":lin[8],"actor5_name":lin[9],"actor5_gender":lin[10],"actor_number":lin[11],"director_name":lin[12],"director_gender":lin[13],"director_number":lin[14],"producer_name":lin[15],"producer_number":lin[16],"screenplay_name":lin[17],"editor_name":lin[18]})
+        linea = archivo.readline();
+    archivo.close    
+    return moviecasting
+
+
 def printMenu():
     """
     Imprime el menu de opciones
@@ -82,7 +113,7 @@ def printMenu():
     print("4- Encontrar buenas películas de un director")
     print("0- Salir")
 
-def countElementsFilteredByColumn(details, casting):
+def countElementsFilteredByColumn(criteria, column, data):
     """
     Retorna cuantos elementos coinciden con un criterio para una columna dada  
     Args:
@@ -96,14 +127,14 @@ def countElementsFilteredByColumn(details, casting):
         counter :: int
             la cantidad de veces ue aparece un elemento con el criterio definido
     """
-    if len(lst)==0:
+    if len(data)==0:
         print("La lista esta vacía")  
         return 0
     else:
         t1_start = process_time() #tiempo inicial
         counter=0 #Cantidad de repeticiones
-        for element in lst:
-            if criteria.lower() in element[column].lower(): #filtrar por palabra clave 
+        for element in data.keys():
+            if criteria.lower() in data[element][column].lower(): #filtrar por palabra clave 
                 counter+=1
         t1_stop = process_time() #tiempo final
         print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
@@ -157,11 +188,13 @@ def main():
                 loadCSVFile(data_link, data) #llamar funcion cargar datos
                 print("Datos cargados, "+str(len(data))+" elementos cargados")
             elif int(inputs[0])==2: #opcion 2
-                if len(lista)==0: #obtener la longitud de la lista
+                if len(data)==0: #obtener la longitud de la lista
                     print("La lista esta vacía")    
-                else: print("La lista tiene "+str(len(data))+" elementos")
+                else:
+                    print("La lista tiene " + str(len(data)) + " elementos")
+                    print(data['2'])
             elif int(inputs[0])==3: #opcion 3
-                column=input('Ingrese el tipo de información que desea consultar')
+                column=input('Ingrese el tipo de información que desea consultar\n')
                 criteria=input('Ingrese el criterio de búsqueda\n')
                 counter=countElementsFilteredByColumn(criteria, column, data) #filtrar una columna por criterio  
                 print("Coinciden ",counter," elementos con el crtierio: ", criteria)
@@ -169,8 +202,6 @@ def main():
                 director = input('Ingrese el nombre del director\n')
                 counter, average = countElementsByCriteria(data,director)
                 print("Existen ",counter," peliculas buenas del director ", director, "con una puntuacion promedio de: ",average)
-            elif inputs[0]=='77': #opcion dev
-                print(data['2'])
             elif int(inputs[0])==0: #opcion 0, salir
                 sys.exit(0)
 
