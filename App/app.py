@@ -165,6 +165,23 @@ def countElementsByCriteria(data, director):
     
     return (counter,average)
 
+def countElementsByCriteria1(moviedetails: list, moviecasting: list, director_name: str)->tuple:
+     buenas = 0
+     promedio = 0
+     peliculas_d = 0                        
+     for b in moviecasting:
+        if b['director_name']==director_name: 
+            peliculas_d+=1
+            promedio += a['vote_average']
+            promedio = promedio/peliculas_d
+            for a in moviedetails:
+                if a['vote_average']>= 6:
+                    buenas+=1
+                
+                             
+     resultado = (buenas, promedio)             
+     return resultado
+
 def main():
     """
     Método principal del programa, se encarga de manejar todos los metodos adicionales creados
