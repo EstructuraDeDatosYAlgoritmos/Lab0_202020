@@ -43,10 +43,3 @@ def cargar_moviescasting (archivo:str)->list:
                    
      resultado = (buenas, promediofinal)             
      return resultado
-                             
-                             
-                             
-                       
-                             
-     
-    
